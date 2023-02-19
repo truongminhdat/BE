@@ -13,6 +13,10 @@ const OrderModel = connection.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    quantity: {
+      type: DataTypes.STRING, 
+      defaultValue: 1,
+    },
     status: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

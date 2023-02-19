@@ -3,11 +3,11 @@ const { v4: uuidv4 } = require("uuid");
 const RoomModel = require('../../models/room.model');
 
 const createOrder = async(req, res) => {
-    const userId = req.user.id;
+    
 
-    const  {id} = req.body;
+    const  {id, quantity} = req.body;
   
-    const address = req.user.address;
+ 
     const order = await OrderModel.findOne({
         where: {
             roomId: id
@@ -23,7 +23,8 @@ const createOrder = async(req, res) => {
             id: uuidv4(),
             userId: req.user.id, 
              roomId: id,
-             address: req.user.address,               
+             address: req.user.address,   
+             quantity,         
     
         })
         return res.status(200).json({
@@ -43,23 +44,45 @@ const getOrder = async(req, res) =>{
             {
               model: RoomModel,
               as: "room",
-              attributes: ["url","title"],
+              attributes: ["url","title", "price"],
             },
           ],
           raw: true,
           nest: true,
     });
+    let count = await OrderModel.count({
+        where: {
+            userId: req.user.id
+        }
+    });
     return res.status(200).json({
         msg:"Get All Room",
-        data
+        data, 
+        count
     })
 } 
+const deleteorder = async(req, res) => {
+    try {
 
-  
+        let data = await OrderModel.destroy({
+            where: {
+                userId: req.user.id
+            }
+        })
+        return res.status(200).json({
+            msg: "Delete sucess", data
+        })
+        
+    } catch (e) {
+        return res.status(500).json({
+            msg: 'Error from the server'
+        })
+    }
+}  
 
        
         
 
     
 module.exports = {
-    createOrder,getOrder}
+    createOrder,getOrder, deleteorder}
