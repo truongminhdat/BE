@@ -58,7 +58,7 @@ const registrationController = async (req, res) => {
         phoneNumber,
         dayOfBirth: selectedDate,
         gender,
-        roleId: "3f855ac3-7e3c-4455-9d0e-04810dacd502",
+        roleId: "ccd81d90-067c-4518-9f66-163e7da31a3b",
         avatar: fileName,
         url: url,
       });

@@ -1,14 +1,15 @@
-const jwt = require("jsonwebtoken");
+ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const validateToken = (req, res, next) => {
-  const accessToken = req.header("accessToken");
+const validateAdminToken = (req, res, next) => {
+  const accessToken = req.header("adminToken");
   if (!accessToken)
     return res.status(404).json({
       msg: "User not logged in",
     });
   try {
-    const validToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+    const validToken = jwt.verify(adminToken, process.env.JWT_SECRET);
+    console.log('check valid Token',validToken)
     console.log('check validToken', validToken)
     req.user = validToken;
 
@@ -22,5 +23,6 @@ const validateToken = (req, res, next) => {
   }
 };
 module.exports = {
-  validateToken,
-};
+    validateAdminToken,
+  };
+  

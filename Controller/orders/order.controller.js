@@ -79,10 +79,37 @@ const deleteorder = async(req, res) => {
         })
     }
 }  
+const getOrderAdmin = async(req, res) => {
+    try {
+        let data =  await OrderModel.findAll({
+            where: {
+                userId: req.user.id
+            }, 
+            include: [
+                {
+                  model: RoomModel,
+                  as: "room",
+                  attributes: ["url","title", "price"],
+                },
+              ],
+              raw: true,
+              nest: true,
+        });
+        return res.status(200).json({
+            msg: "Get admin orders", data
+        })
+        
+    } catch (e) {
+        return res.status(500).json({
+            msg: "Error from the server"
+        })
+        
+    }
+}
 
        
         
 
     
 module.exports = {
-    createOrder,getOrder, deleteorder}
+    createOrder,getOrder, deleteorder, getOrderAdmin}

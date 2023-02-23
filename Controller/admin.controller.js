@@ -2,7 +2,11 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const route = express.Router();
 const UserModel = require("../models/user.model");
+const RoleModel = require("../models/role.model")
 const roles = require("../models/role.model");
+const RoomModel = require("../models/room.model");
+const OrderModel = require("../models/order");
+const CategoryModel = require("../models/categories");
 require("dotenv").config();
 
 const registerController = async (req, res) => {
@@ -74,6 +78,7 @@ const registerController = async (req, res) => {
 
 const adminLogin = async (req, res) => {
   const { email: inputEmail, password: pwd } = req.body;
+
   if (!inputEmail || !pwd) {
     return res.status(400).json({ msg: "insert email or password" });
   }
@@ -82,16 +87,31 @@ const adminLogin = async (req, res) => {
     where: {
       email: inputEmail,
     },
+    include: [
+      {
+        model: RoleModel,
+        as: "role",
+        attributes: ["name"],
+      },
+    ],
     raw: true,
+    nest: true
+
   });
-  console.log("check admin", admin);
+  if(admin.role.name === 'User'){
+    return res.status(404).json({
+      msg: "Account does not have permission to login"
+    })
+  }
+
+
 
   if (!admin) {
     return res.status(404).json({ msg: "Account not found" });
   }
 
   if (admin) {
-    const accessToken = jwt.sign(
+    const adminToken = jwt.sign(
       JSON.stringify({ email: admin.email, id: admin.id }),
       process.env.JWT_SECRET
     );
@@ -103,18 +123,63 @@ const adminLogin = async (req, res) => {
       process.env.JWT_SECRET
     );
 
-    res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000,
-    });
     return res
       .status(200)
-      .json({ msg: "login successfully", accessToken, refreshToken });
+      .json({ msg: "login successfully", adminToken, refreshToken });
   }
   return res.status(400).json({ msg: "Data is not valid" });
 };
+const AuthAdminController = (req, res) => {
+  return res.json(req.user);
+}; 
+const adminValidateToken = (req, res, next) => {
+  const adminToken = req.header("adminToken");
+  if (!adminToken)
+    return res.status(404).json({
+      msg: "User not logged in",
+    });
+  try {
+    const validToken = jwt.verify(adminToken, process.env.JWT_SECRET);
+    console.log('check validToken', validToken)
+    req.user = validToken;
+
+    if (validToken) {
+      return next();
+    }
+  } catch (e) {
+    return res.status(404).json({
+      msg: "auth not token",
+    });
+  }
+};
+
+const countAdminController  =async(req, res) => {
+
+    let room = await OrderModel.count({
+     where:{
+      status: 1
+     }
+    })
+    let user = await UserModel.count()
+    let role = await RoleModel.count()
+    let categories = await CategoryModel.count()
+
+    return res.status(200).json({
+      msg: "Count room data", 
+      room,
+      user,
+      role, 
+      categories
+
+    })
+  }
+    
+
 
 module.exports = {
   registerController,
   adminLogin,
+  AuthAdminController,
+  countAdminController, 
+  adminValidateToken
 };

@@ -14,6 +14,8 @@ const { roleRouter } = require("./Router/role.router");
 const categoriesRouter = require("./Router/categories.router");
 const roomRouter = require("./Router/room.router");
 const { orderRouter } = require("./Router/order.router");
+const { adminRouter } = require("./Router/admin.router");
+const {paymentRouter} = require('./Router/payment.router')
 setAssociation();
 require("dotenv").config();
 
@@ -62,6 +64,8 @@ app.use("/categories", categoriesRouter);
 app.use("/order", orderRouter)
 
 app.use("/room", roomRouter);
+app.use("/admin", adminRouter)
+app.use("/payment", paymentRouter)
 app.get("/setcookie", (req, res) => {
   res.cookie(`Cookie token name`, `encrypted cookie string Value`);
   res.send("Cookie have been saved successfully");

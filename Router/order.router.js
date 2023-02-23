@@ -4,7 +4,8 @@ const { validateToken } = require('../middlewares/Authen');
 const orderRouter = express.Router();
 orderRouter.post('/postorder', validateToken, createOrder);
 orderRouter.get('/getorder', validateToken, getOrder )
-orderRouter.delete('/deleteorder', validateToken, deleteorder )
+orderRouter.delete('/deleteorder', validateToken, deleteorder ),
+
 module.exports = {
     orderRouter
 }

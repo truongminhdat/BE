@@ -207,6 +207,67 @@ const getAllRoomAction = async (req, res) => {
     });
   }
 };
+const getDataRoom = async(req, res) => {
+  try {
+
+  
+    const response = await RoomModel.findAll({
+      where: {
+         categoryId: '5bc30696-dfd6-405a-997a-6e39ff0173a6'
+      },
+      include: [
+        {
+          model: CategoryModel,
+          as: "category",
+          attributes: ["name"],
+        },
+      ],
+      raw: true,
+      nest: true,
+    });
+    return res.status(200).json({
+      msg: "Get all payment",
+      response
+    });
+    
+  } catch (e) {
+     return res.status(200).json({
+      msg: "Get Data By Id", 
+      data
+     })    
+  }
+}
+const getAllRoomByClient = async (req, res) => {
+  
+  const search = req.query.search;
+  
+  let getAllRoom = await RoomModel.findAll({
+    where: {
+      [Op.or]: [
+        {
+          price: {
+            [Op.like]: "%" + search + "%",
+          },
+        },
+      ],
+    },
+    include: [
+      {
+        model: CategoryModel,
+        as: "category",
+        attributes: ["name"],
+      },
+    ],
+    raw: true,
+    nest: true,
+    order: [["id", "DESC"]],
+  });
+  return res.status(200).json({
+    msg: "get all room",
+    getAllRoom,
+  
+  });
+};
 
 module.exports = {
   createRoom,
@@ -215,4 +276,5 @@ module.exports = {
   getAllRoomById,
   deleteRoom,
   getAllRoomAction,
+  getDataRoom, getAllRoomByClient
 };

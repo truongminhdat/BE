@@ -8,6 +8,7 @@ const CategoryModel = require("../models/categories");
 const GalleryModel = require("../models/galleries");
 const OrderModel = require("../models/order");
 const OrderDetail = require("../models/orderDetail");
+const paymentsModel = require("../models/payment");
 
 const setAssociation = () => {
   RoleModel.hasMany(UserModel, {
@@ -80,6 +81,18 @@ const setAssociation = () => {
     OrderModel.belongsTo(RoomModel, {
       foreignKey: {
         name: "roomId",
+        type: DataTypes.STRING
+      }
+    })
+    OrderModel.hasMany(paymentsModel, {
+      foreignKey:{
+        name: "orderId",
+        type: DataTypes.STRING
+      }
+    })
+    paymentsModel.belongsTo(OrderModel, {
+      foreignKey:{
+        name: "orderId", 
         type: DataTypes.STRING
       }
     })
