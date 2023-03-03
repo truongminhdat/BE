@@ -1,6 +1,8 @@
 const OrderModel = require('../../models/order');
 const { v4: uuidv4 } = require("uuid");
 const RoomModel = require('../../models/room.model');
+const UserModel = require('../../models/user.model');
+const nodemailer = require('nodemailer');
 
 const createOrder = async(req, res) => {
     
@@ -106,10 +108,103 @@ const getOrderAdmin = async(req, res) => {
         
     }
 }
+const getAllOrder = async(req, res) =>{
+    let data =  await OrderModel.findAll({
+        include: [
+            {
+              model: RoomModel,
+              as: "room",
+              attributes: ["url","title", "price", "discount"],
+            },
+            {
+                model: UserModel,
+                as: 'user',
+            }
+          ],
+        
+          raw: true,
+          nest: true,
+    });
+   
+    return res.status(200).json({
+        msg:"Get All Room",
+        data, 
+    })
+}
 
+const sendMail = async (req, res) => {
+    try {
+        
+        const {email} = req.body;
+        console.log('email', email)
+  const data = await UserModel.findOne({
+    where:{
+      email: email
+    },
+    raw:true,
+  })
+  console.log('check data', data)
+  
+  if(!data){
+    return res.json('User not exits !')
+  }
+ 
+  
+  let transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'truongminhdat789@gmail.com' ,// generated ethereal user
+      pass: 'wgeavuzahijohagg', // generated ethereal password
+    },
+  });
+
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: 'Booking Room', // sender address
+    to: data.email, // list of receivers
+    subject: "Thông báo đặt phòng thành công", // Subject line
+    text: 'Thông báo đặt phòng thành công',
+    html: `Thông báo khách hàng ${data.username} đặt phòng thành công!`// plain text body
+  });
+
+        
+    } catch (e) {
+        return res.status(500).json({
+            msg: "Error from the server"
+        })
+    }
+}
+        
+
+const getOneOrder = async(req, res) => {
+    let getByIdOrder = await OrderModel.findOne({
+        where: {
+            id: req.query.id,
+        },
+        include: [
+            {
+              model: RoomModel,
+              as: "room",
+              attributes: ["url","title", "price", "discount"],
+            },
+            {
+                model: UserModel,
+                as: 'user',
+            }
+          ],
+        
+          raw: true,
+          nest: true,
+    })
+    return res.status(200).json({
+    msg: "Get one order by id", getByIdOrder   })
+}
        
         
 
     
 module.exports = {
-    createOrder,getOrder, deleteorder, getOrderAdmin}
+    createOrder,getOrder, deleteorder, getOrderAdmin, getAllOrder, sendMail, getOneOrder
+}

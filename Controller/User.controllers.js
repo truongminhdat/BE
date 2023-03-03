@@ -10,6 +10,10 @@ var path = require("path");
 const RoleModel = require("../models/role.model");
 const { Op } = require("sequelize");
 const fs = require("fs");
+const { simpleEmail } = require("./mail.controller");
+const { send } = require("process");
+const nodemailer = require('nodemailer');
+
 
 const registrationController = async (req, res) => {
   // try {
@@ -586,6 +590,72 @@ const forgotPassword = async (req, res) => {
     });
   }
 };
+const resetPassword = async(req, res) => {
+  const {email} = req.body;
+  const password = '123456789'
+  const data = await UserModel.findOne({
+    where:{
+      email: email
+    },
+    raw:true,
+  })
+  console.log('check password', data.password)
+  if(!data){
+    return res.json('User not exits !')
+  }
+ 
+  const encryptedPassword = await bcrypt.hash('123456789', 10);
+  data.password = encryptedPassword;
+  let transporter = nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      user: 'truongminhdat789@gmail.com' ,// generated ethereal user
+      pass: 'wgeavuzahijohagg', // generated ethereal password
+    },
+  });
+
+  // send mail with defined transport object
+  let info = await transporter.sendMail({
+    from: 'Booking Room', // sender address
+    to: data.email, // list of receivers
+    subject: "Đặt lại mật khẩu", // Subject line
+    text: 'Đặt lại mật khẩu',
+    html: `Hệ thống Booking Hotel cấp lại cho bạn là ${password}`// plain text body
+  });
+
+  return res.status(200).json({
+    msg: "Create user password"
+  })
+
+}
+const updatePassword = async(req, res) => {
+  try {
+    const {id, token } = req.params;
+    const {password} = req.params; 
+    const oldUser = await UserModel.findOne({id: id});
+    if(!oldUser){
+      return res.status(400).json({
+        msg: "User not exits!"
+      })
+    }
+    const secret = process.env.JWT_SECRET + oldUser.password; 
+   
+      const verify = jwt.verify(token, secret);
+      const encryptedPassword = await bcrypt.hash(password, 10);
+      oldUser.password = encryptedPassword; 
+      return res.status(200).json({
+        msg: "Update password success"
+      })
+  
+     
+  } catch (e) {
+    return res.status(500).json({
+      msg: "Error from the server"
+    })    
+  }
+}
 
 module.exports = {
   registrationController,
@@ -602,4 +672,6 @@ module.exports = {
   Authcontroller,
   forgotPassword,
   editUser,
+  resetPassword, 
+  updatePassword
 };
